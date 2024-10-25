@@ -1,0 +1,39 @@
+name: deploy-to-k8s
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-static-manifests:
+    permissions:             # Add the permissions key and its children required by the Deploy to Kubernetes cluster action
+      actions: read
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v4
+        with:
+          method: service-account
+          k8s-url: https://35.154.73.214:6443     # Replace this IP address with the results of curl http://checkip.amazonaws.com
+          k8s-secret: | # Replace the example secret below with the secret from your cluster; it should be indented by 12 spaces
+            apiVersion: v1
+            data:
+              ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJSHRZYzVzdjFMSFV3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TkRFd01qVXdNek00TURoYUZ3MHpOREV3TWpNd016UXpNRGhhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUURtYmk2dmpqUXdYLzdLd0F4ckJLNFlJK3FpRGdzZnpmeS9YMVNNRWNLN1J4RVRmdFF6U292dGVzK08KdzVkdzNOQzlydVRxTFZ6QzU4SVVBdFl4RDUwZmwzbWZ1NWZiQmNCY3RIWjJ5YVR3eFlhbGlUdWMvbHRYekhmTgpNbnRJcG1FU3BCWVhzdkM0T1c2M2lnMGxPYVJYWHg2YVJsdUJsVWh3ZkZtOENkdEhEdWk4K0kxeXhhb3c3d01XCmxodlN2RXF1VTRNaHYzVysvVVBPZXo3ejZKRkswc3JxYjdqNE9Tb25DSyt4M2R3eEEzdEJTTVFzU0RrUFpKNzYKbE5DOEVWOVdLVUF0VDAzSDNEUC95Um5wcEZwSTRXSW93S0hMMDZORnVCOEMwRjZ6MWt5aUcvbjRzbmV2NWxmWQpvTzhrVzZ0ZmQrbVEweENuS05nVkR4TlQrZmV0QWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJSaTJLWFNnMmEvbDI3OU44L21FZ3N1Q3UwWDhUQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQWN6RDk2TVdqLwpwMUVYWWRQZmtLU2psMnExMW5Vd2JZZEllL0JSQ2t6N0h3b1U2VHFML0pKYkluMWwvMHZwMnIrVlVVdHJ4U25pCjBGaWt3N3dkdU00b3JTWEt1Rk1CMG13dmc0bThvZzNGa2lRZWpGYjYrWE5PRDV3N3NQQ1JEUzNIOEFRL2lycWgKaTFnVk5QRUFSUktxNHp6Z2NRWmRZekJXa29kWGt4aDVZVnZpTHBTOWdDRlRhdUJiT0FsRG9JbFo0ZWduYTN3MAovTkM3K0d6cjBHVVZVNWMxODh5b3Uyb2lmbW94NFRJalcyTHozTG52UnpEVDEwcDlMeUM5MERGS29GNDBWb1VOCmgvSUFUZ2pqcVFaY1dERVdYNlhKZ1VYUVBMV2lZUDBvakYvTHk4em1aK29NVDJqb0pITVIxR2g3WWo5UEVrU00KaUtraDhsb0s4azVkCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+              namespace: ZGVmYXVsdA==
+              token: ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNkltRllRM3BpTFdWNVpEZ3hXVE40TjNnd1ZERmFRMnA0YkV0WlVIZFNRVXhoVmt0bVYwTnJVWFpGVUhNaWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbWRvWVMxellTMXpaV055WlhRaUxDSnJkV0psY201bGRHVnpMbWx2TDNObGNuWnBZMlZoWTJOdmRXNTBMM05sY25acFkyVXRZV05qYjNWdWRDNXVZVzFsSWpvaVoyaGhJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpYSjJhV05sTFdGalkyOTFiblF1ZFdsa0lqb2lPR05oTkRjeU5qa3RZemRpTmkwMFpUQXhMV0l5TnpJdE5XTTFZMk15TkRGaU1HWXdJaXdpYzNWaUlqb2ljM2x6ZEdWdE9uTmxjblpwWTJWaFkyTnZkVzUwT21SbFptRjFiSFE2WjJoaEluMC5pT2ptYU1pRFRzcTBRaHY1WU53bmJ5RGdueGhYQUpWcjI4SERQYUNEWVhjQm9DS3FnMzJRYl9XV1BJOU1zLWtlZTg1VG91YWRWODA5SHhCVXYxbF9HQXBHVDVlb0JYeUFhUFRSLTBaYzc1OXlPekxmMjhVLTU4ajBUY3puY3NpTXI4TV9xelBWQTE4amN6aGxMOEZaOHBTZndqc3lXc2RyUTVpLXVocUdQUHFrd0FlWGhGR09ZV2preGIyd3JvN2IyVTRMX2VaWWtGM0R4VzZ6aThlVnVteDU3Q0Jyai1uTDJWcndUN1ZIMkJQY1E5V2Uzb0VsU3lNcFVFVG03dUFVOHVuMzZxNC1ESGtMaEVpWFZPLVA1anBLY2JBLXU4ZGRLWERnMGpWaG84d1pERXFodkFHUmpoOGh5SWtDSXlQQVozY3VkRUF4dXUtZ1ZKX3lyLTNBS2c=
+            kind: Secret
+            metadata:
+              annotations:
+                kubectl.kubernetes.io/last-applied-configuration: |
+                  {"apiVersion":"v1","kind":"Secret","metadata":{"annotations":{"kubernetes.io/service-account.name":"gha"},"name":"gha-sa-secret","namespace":"default"},"type":"kubernetes.io/service-account-token"}
+                kubernetes.io/service-account.name: gha
+                kubernetes.io/service-account.uid: 8ca47269-c7b6-4e01-b272-5c5cc241b0f0
+              creationTimestamp: "2024-10-25T03:47:26Z"
+              name: gha-sa-secret
+              namespace: default
+              resourceVersion: "993"
+              uid: daedad52-a2b2-4f47-8f3c-445e08f89c51
+            type: kubernetes.io/service-account-token
+      - name: Get pods
+        run: kubectl get pods -n default
