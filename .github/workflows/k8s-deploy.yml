@@ -35,5 +35,15 @@ jobs:
               resourceVersion: "993"
               uid: daedad52-a2b2-4f47-8f3c-445e08f89c51
             type: kubernetes.io/service-account-token
-      - name: Get pods
-        run: kubectl get pods -n default
+      - name: Checkout repo                           # Delete the "Get pods" step and add these steps
+        uses: actions/checkout@v4
+      - name: Deploy manifests
+        uses: azure/k8s-deploy@v4
+        with:
+          action: deploy
+          manifests: |
+              manifests/dep.yaml
+              manifests/svc.yaml
+          namespace: default
+          pull-images: false
+
